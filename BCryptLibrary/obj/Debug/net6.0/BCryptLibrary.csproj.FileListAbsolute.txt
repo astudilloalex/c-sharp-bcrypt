@@ -1,0 +1,12 @@
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\bin\Debug\net6.0\BCryptLibrary.deps.json
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\bin\Debug\net6.0\BCryptLibrary.dll
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\bin\Debug\net6.0\BCryptLibrary.pdb
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.csproj.AssemblyReference.cache
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.GeneratedMSBuildEditorConfig.editorconfig
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.AssemblyInfoInputs.cache
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.AssemblyInfo.cs
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.csproj.CoreCompileInputs.cache
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.dll
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\refint\BCryptLibrary.dll
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\BCryptLibrary.pdb
+D:\Users\Alex\Documents\NetProjects\BCrypt\BCryptLibrary\obj\Debug\net6.0\ref\BCryptLibrary.dll

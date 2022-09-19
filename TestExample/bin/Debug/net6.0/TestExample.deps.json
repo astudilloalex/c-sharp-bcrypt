@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "TestExample/1.0.0": {
+        "dependencies": {
+          "BCryptLibrary": "1.0.0"
+        },
+        "runtime": {
+          "TestExample.dll": {}
+        }
+      },
+      "BCryptLibrary/1.0.0": {
+        "runtime": {
+          "BCryptLibrary.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TestExample/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BCryptLibrary/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
