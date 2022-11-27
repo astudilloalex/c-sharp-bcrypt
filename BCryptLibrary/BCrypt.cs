@@ -36,8 +36,7 @@ namespace BCryptLibrary
         private static sbyte Char64(char c)
         {
             sbyte[] index64 = BCryptArrays.Base64Decoding;
-            if (c < 0 || c > index64.Length)
-                return -1;
+            if (c < 0 || c >= index64.Length) return -1;
             return index64[c];
         }
 
@@ -114,10 +113,10 @@ namespace BCryptLibrary
                 ++length;
             }
             byte[] decodeData = new byte[length];
-            string stringBuilderValue = stringBuilder.ToString();
+            char[] chars = stringBuilder.ToString().ToCharArray();
             for (off = 0; off < length; off++)
             {
-                decodeData[off] = (byte)stringBuilderValue.ToCharArray()[off];
+                decodeData[off] = (byte)chars[off];
             }
             return decodeData;
         }
@@ -131,7 +130,7 @@ namespace BCryptLibrary
         /// <param name="length">The number of bytes to encode.</param>
         /// <returns>The base64-encoded string.</returns>
         /// <exception cref="ArgumentException">If the <c>length</c> is invalid</exception>
-        private static string EncodeBase64(byte[] data, int length)
+        private static void EncodeBase64(byte[] data, int length, StringBuilder stringBuilder)
         {
             if (length <= 0 || length > data.Length)
             {
@@ -140,7 +139,6 @@ namespace BCryptLibrary
             int off = 0;
             sbyte char1;
             sbyte char2;
-            StringBuilder stringBuilder = new();
             char[] chars = BCryptArrays.Base64Encode;
             while (off < length)
             {
@@ -166,7 +164,6 @@ namespace BCryptLibrary
                 stringBuilder.Append(chars[char1 & 0x3f]);
                 stringBuilder.Append(chars[char2 & 0x3f]);
             }
-            return stringBuilder.ToString();
         }
 
         // <summary>
@@ -217,7 +214,7 @@ namespace BCryptLibrary
             if (logRounds < 10) stringBuilder.Append('0');
             stringBuilder.Append(logRounds);
             stringBuilder.Append('$');
-            stringBuilder.Append(EncodeBase64(rounds, rounds.Length));
+            EncodeBase64(rounds, rounds.Length, stringBuilder);
             return stringBuilder.ToString();
         }
 
@@ -248,7 +245,26 @@ namespace BCryptLibrary
         /// </exception>
         public static string HashPassword(string password, string salt)
         {
+            return HashPassword(Encoding.UTF8.GetBytes(password), salt);
+        }
+
+        /// <summary>
+        /// ash a password using the OpenBSD bcrypt scheme.
+        /// </summary>
+        /// <param name="passwordBytes">The password to hash, as a byte array.</param>
+        /// <param name="salt">The salt to hash with (perhaps generated using BCrypt.GenSalt)</param>
+        /// <returns>The hashed password</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static string HashPassword(byte[] passwordBytes, string salt)
+        {
+            BCryptUtils bCryptUtils;
+            string realSalt;
+            byte[] saltb;
+            byte[] hashed;
+            char minor = (char)0;
+            int rounds, off;
             int saltLength = salt.Length;
+            StringBuilder builder = new();
             if (saltLength < 28)
             {
                 throw new ArgumentException("Invalid salt length", nameof(salt));
@@ -257,23 +273,21 @@ namespace BCryptLibrary
             {
                 throw new ArgumentException("Invalid salt version", nameof(salt));
             }
-            sbyte off;
-            char minor;
             if (salt[2] == '$')
             {
                 off = 3;
-                minor = (char)0;
             }
             else
             {
                 minor = salt[2];
-                if ((minor != 'a' && minor != 'b' && minor != 'y') || salt[3] != '$')
+                if ((minor != 'a' && minor != 'x' && minor != 'y' && minor != 'b') || salt[3] != '$')
                 {
                     throw new ArgumentException("Invalid salt revision", nameof(salt));
                 }
                 off = 4;
             }
-            // Extract number of rounds.
+
+            // Extract number of rounds
             if (salt[off + 2] > '$')
             {
                 throw new ArgumentException("Missing salt rounds", nameof(salt));
@@ -282,28 +296,34 @@ namespace BCryptLibrary
             {
                 throw new ArgumentException("Invalid salt", nameof(salt));
             }
-            int rounds = int.Parse(salt.Substring(off, 2));
-            StringBuilder stringBuilder = new();
-            byte[] realSalt;
-            if ((off + 25) > salt.Substring(off + 3).Length)
+            rounds = int.Parse(salt.Substring(off, 2));
+            realSalt = salt.Substring(startIndex: off + 3);
+            saltb = DecodeBase64(realSalt, Constants.SaltLength).ToArray();
+            if (minor >= 'a')
             {
-                realSalt = DecodeBase64(salt.Substring(off + 3), Constants.SaltLength);
+                byte[] tempPassword = new byte[passwordBytes.Length + 1];
+                for (int i = 0; i < passwordBytes.Length; i++) tempPassword[i] = passwordBytes[i];
+                tempPassword[^1] = 0;
+                passwordBytes = tempPassword;
             }
-            else
+
+            bCryptUtils = new BCryptUtils(BCryptArrays.PArray, BCryptArrays.SArray);
+            hashed = bCryptUtils.CryptRaw(passwordBytes, saltb, rounds, minor == 'x', minor == 'a' ? 0x10000 : 0);
+            builder.Append("$2");
+            if (minor >= 'a')
             {
-                realSalt = DecodeBase64(salt.Substring(off + 3, 25), Constants.SaltLength);
+                builder.Append(minor);
             }
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password + (minor >= 'a' ? "\000" : ""));
-            byte[] hashed = new BCryptUtils(BCryptArrays.PArray, BCryptArrays.SArray).CryptRaw(passwordBytes, realSalt, (byte)rounds);
-            stringBuilder.Append("$2");
-            if (minor >= 'a') stringBuilder.Append(minor);
-            stringBuilder.Append('$');
-            if (rounds < 10) stringBuilder.Append('0');
-            stringBuilder.Append(rounds);
-            stringBuilder.Append('$');
-            stringBuilder.Append(EncodeBase64(realSalt, realSalt.Length));
-            stringBuilder.Append(EncodeBase64(hashed, BCryptArrays.BFCryptCiphertext.Length * 4 - 1));
-            return stringBuilder.ToString();
+            builder.Append('$');
+            if (rounds < 10)
+            {
+                builder.Append('0');
+            }
+            builder.Append(rounds);
+            builder.Append('$');
+            EncodeBase64(saltb, saltb.Length, builder);
+            EncodeBase64(hashed, BCryptArrays.BFCryptCiphertext.Length * 4 - 1, builder);
+            return builder.ToString();
         }
     }
 }
